@@ -1,0 +1,40 @@
+# ===== 大数据集与训练产物（无需上传） =====
+模块/船舶识别/数据集获取/
+模块/船舶识别/训练结果/
+模块/问答系统/db.sqlite3
+
+# ===== 参考资料（无需上传） =====
+后端参考模板/
+
+# 论文、查重报告、签名等含个人隐私，勿上传（有用图片已提取到 system/md_pic/）
+其它/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.so
+*.log
+*.pot
+local_settings.py
+.env
+!.env.example
+.venv/
+venv/
+env/
+
+# ===== 数据库文件 =====
+*.sqlite3
+
+# ===== 媒体/上传文件（运行时生成） =====
+media/
+
+# ===== IDE / 编辑器 =====
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# ===== 其他 =====
+*.egg-info/
+dist/
+build/

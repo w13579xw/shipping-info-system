@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>航运信息系统 - 用户登录</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+        body {
+            background: url('/static/img/login-bg.jpg') center/cover no-repeat fixed;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+        .error-placeholder::placeholder {
+            color: #ff4d4f;
+            transition: all 0.3s ease;
+        }
+        .login {
+            width: 500px;
+            min-height: 390px;
+            border: none;
+            margin: 0 auto;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .login:hover {
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
+        }
+        .login h1 {
+            text-align: center;
+            color: #2a5298;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            color: #666;
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .form-control {
+            height: 42px;
+            border-radius: 8px;
+            border: 2px solid #e8e8e8;
+            padding: 8px 12px;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 2px rgba(42, 82, 152, 0.2);
+        }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #2a5298;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .back-button:hover {
+            color: #40a9ff;
+            background: white;
+            text-decoration: none;
+            transform: translateX(-3px);
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-button">&larr; 返回主页</a>
+    <div class="login">
+        <h1>用户登录</h1>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="form-group">
+                <label>用户名:</label>
+                <input type="text" name="username" class="form-control" placeholder="请输入用户名" id="id_username">
+            </div>
+            <div class="form-group">
+                <label>密码:</label>
+                <input type="password" name="password" class="form-control" placeholder="请输入密码" id="id_password">
+            </div>
+            <div class="form-group">
+                <label>验证码:</label>
+                <div class="row">
+                    <div class="col-xs-7">
+                        <input type="text" name="code" class="form-control" placeholder="请输入验证码">
+                    </div>
+                    <div class="col-xs-5">
+                        <img src="/image/code" class="form-control" style="cursor: pointer; padding: 0;" onclick="this.src='/image/code?'+Math.random()">
+                    </div>
+                </div>
+            </div>
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible" role="alert" style="margin-bottom: 15px;">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="form-group" style="margin-top: 30px;">
+                <button type="submit" class="btn btn-primary" style="width: 120px; background-color: #2a5298; border-color: #2a5298; height: 42px; border-radius: 8px; font-weight: 500; transition: all 0.3s ease;">登录</button>
+                <a href="/user/register" class="btn btn-default" style="float: right; width: 160px; color: #2a5298; border-color: #2a5298; height: 42px; border-radius: 8px; line-height: 28px; font-weight: 500; transition: all 0.3s ease;">没有账号？去注册</a>
+            </div>
+        </form>
+    </div>
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 自动清除消息提示
+            setTimeout(function() {
+                $('.alert').fadeOut('slow', function() {
+                    $(this).remove();
+                });
+            }, 3000);
+
+            // 保存原始placeholder
+            $('input').each(function() {
+                $(this).data('original-placeholder', $(this).attr('placeholder'));
+            });
+
+            // 处理表单错误
+            function handleFormError(inputId, error) {
+                if (error) {
+                    $(inputId).addClass('error-placeholder')
+                             .attr('placeholder', error);
+                }
+            }
+
+            // 处理各字段错误
+            handleFormError('#id_username', '{{ form.username.errors.0 }}');
+            handleFormError('#id_password', '{{ form.password.errors.0 }}');
+
+            // 输入框获得焦点时清除错误提示
+            $('input').focus(function() {
+                $(this).removeClass('error-placeholder')
+                       .attr('placeholder', $(this).data('original-placeholder'));
+            });
+
+            // 表单提交验证
+            $('form').on('submit', function(e) {
+                $('input').each(function() {
+                    if (!$(this).val()) {
+                        $(this).addClass('error-placeholder')
+                               .attr('placeholder', '此字段不能为空');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

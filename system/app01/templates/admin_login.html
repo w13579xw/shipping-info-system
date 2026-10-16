@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>航运信息系统 - 管理员登录</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+        body {
+            background: url('/static/img/login-bg.jpg') center/cover no-repeat fixed;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+        .error-placeholder::placeholder {
+            color: #ff4d4f;
+            transition: all 0.3s ease;
+        }
+        .login {
+            width: 500px;
+            min-height: 390px;
+            border: none;
+            margin: 0 auto;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .login:hover {
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
+        }
+        .login h1 {
+            text-align: center;
+            color: #2a5298;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            color: #666;
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .form-control {
+            height: 42px;
+            border-radius: 8px;
+            border: 2px solid #e8e8e8;
+            padding: 8px 12px;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 2px rgba(42, 82, 152, 0.2);
+        }
+        .error-message {
+            color: #ff4d4f;
+            margin-top: 5px;
+            font-size: 14px;
+            display: none;
+        }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #2a5298;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .back-button:hover {
+            color: #40a9ff;
+            background: white;
+            text-decoration: none;
+            transform: translateX(-3px);
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-button">&larr; 返回主页</a>
+    <div class="login">
+        <h1>管理员登录</h1>
+        <form method="post" action="/admin/login" novalidate>
+            {% csrf_token %}
+            <div class="form-group">
+                <label>用户名:</label>
+                {{ form.username }}
+                <div class="error-message" id="username-error">{{ form.username.errors.0 }}</div>
+            </div>
+            <div class="form-group">
+                <label>密码:</label>
+                {{ form.password }}
+                <div class="error-message" id="password-error">{{ form.password.errors.0 }}</div>
+            </div>
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ form.non_field_errors.0 }}
+            </div>
+            {% endif %}
+            <div class="form-group" style="margin-top: 30px;">
+                <button type="submit" class="btn btn-primary" style="width: 100%; background-color: #2a5298; border-color: #2a5298; height: 42px; border-radius: 8px; font-weight: 500; transition: all 0.3s ease;">登录</button>
+            </div>
+        </form>
+    </div>
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 显示错误信息
+            function showError(field, message) {
+                if (message) {
+                    $(`#${field}-error`).text(message).show();
+                    $(`#id_${field}`).addClass('error-placeholder')
+                                    .attr('placeholder', message);
+                }
+            }
+
+            // 处理各字段错误
+            showError('username', '{{ form.username.errors.0 }}');
+            showError('password', '{{ form.password.errors.0 }}');
+
+            // 输入框获得焦点时清除错误提示
+            $('input').focus(function() {
+                const field = $(this).attr('id').replace('id_', '');
+                $(`#${field}-error`).hide();
+                $(this).removeClass('error-placeholder')
+                       .attr('placeholder', $(this).data('original-placeholder'));
+            });
+
+            // 保存原始placeholder
+            $('input').each(function() {
+                $(this).data('original-placeholder', $(this).attr('placeholder'));
+            });
+
+            // 表单提交验证
+            $('form').on('submit', function(e) {
+                let hasError = false;
+                $('input').each(function() {
+                    const field = $(this).attr('id').replace('id_', '');
+                    if (!$(this).val()) {
+                        showError(field, '此字段不能为空');
+                        hasError = true;
+                    }
+                });
+                if (hasError) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>航运信息系统</title>
+    <link rel="icon" href="{% static 'favicon/admin.ico' %}">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+        .navbar-default {
+            background-color: #001529;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        .navbar-default .navbar-brand,
+        .navbar-default .navbar-nav > li > a {
+            color: #fff;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        .navbar-default .navbar-brand {
+            font-size: 20px;
+        }
+        .navbar-default .navbar-nav > li > a:hover,
+        .navbar-default .navbar-brand:hover {
+            color: #1890ff;
+        }
+        .navbar-default .navbar-nav > .active > a,
+        .navbar-default .navbar-nav > .active > a:focus,
+        .navbar-default .navbar-nav > .active > a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #1890ff;
+        }
+        body {
+            background-color: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+    </style>
+    {% block css %}
+    {% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-default">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">航运信息系统</a>
+        </div>
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+            <ul class="nav navbar-nav">
+                <li><a href="/chart/list">数据统计</a></li>
+                <li><a href="/user/list">用户管理</a></li>
+                <li><a href="/admin/list">管理员账户</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="#" style="pointer-events: none; color: #337ab7; font-weight: 500;"><i class="glyphicon glyphicon-user"></i> {{ request.session.admin_info.username }}</a></li>
+                <li><a href="/admin/logout"><i class="glyphicon glyphicon-log-out"></i> 退出</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{% block content %}
+{% endblock %}
+<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+{% block js %}
+{% endblock %}
+</body>
+</html>

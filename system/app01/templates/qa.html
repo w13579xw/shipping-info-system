@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>航运问答系统</title>
+    <link rel="shortcut icon" href="/static/favicon/user.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
+    <style>
+        body {
+            background: url('/static/img/login-bg.jpg') center/cover no-repeat fixed;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .chat-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message-content pre {
+            background-color: #f6f8fa;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 8px 0;
+            overflow-x: auto;
+        }
+
+        .message-content code {
+            font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+            font-size: 13px;
+            padding: 2px 4px;
+            border-radius: 3px;
+            background-color: rgba(27, 31, 35, 0.05);
+        }
+
+        .message-content blockquote {
+            border-left: 4px solid #dfe2e5;
+            color: #6a737d;
+            margin: 8px 0;
+            padding: 0 16px;
+        }
+
+        .message-content ul, .message-content ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+
+        .message-content p {
+            margin: 8px 0;
+        }
+
+        .message.bot .message-content {
+            background-color: #f0f2f5;
+            margin-left: 12px;
+        }
+
+        .message.user .message-content {
+            background-color: #1890ff;
+            color: white;
+            margin-right: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e6e6e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            border-top: 1px solid #e6e6e6;
+        }
+
+        .input-container textarea {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            resize: none;
+            height: 60px;
+        }
+
+        .input-container button {
+            padding: 0 24px;
+            height: 60px;
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .input-container button:hover {
+            background-color: #40a9ff;
+        }
+
+        .input-container button:disabled {
+            background-color: #d9d9d9;
+            cursor: not-allowed;
+        }
+
+        .header {
+            padding: 15px 0;
+            background-color: #1890ff;
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            padding: 8px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            background-color: #ffffff;
+            border: 1px solid #2a5298;
+            color: #2a5298;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            color: #2a5298;
+            text-decoration: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <a href="/" class="back-button">&larr; 返回主页</a>
+            <h2>航运问答系统</h2>
+        </div>
+        <div class="example-questions" style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+            <h4 style="color: #2a5298; margin-bottom: 15px;">示例问题：</h4>
+            <div style="margin-bottom: 15px;">
+                <h5 style="color: #1e88e5; margin-bottom: 10px;">港口领域</h5>
+                <div class="question-list" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <button class="btn btn-info" onclick="document.getElementById('userInput').value='荷兰有哪些港口？'; document.getElementById('userInput').focus();">荷兰有哪些港口？</button>
+                    <button class="btn btn-info" onclick="document.getElementById('userInput').value='中国最大的港口是哪个？'; document.getElementById('userInput').focus();">中国最大的港口是哪个？</button>
+                    <button class="btn btn-info" onclick="document.getElementById('userInput').value='世界十大港口排名是什么？'; document.getElementById('userInput').focus();">世界十大港口排名是什么？</button>
+                </div>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <h5 style="color: #43a047; margin-bottom: 10px;">船舶领域</h5>
+                <div class="question-list" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <button class="btn btn-success" onclick="document.getElementById('userInput').value='集装箱船的主要类型有哪些？'; document.getElementById('userInput').focus();">集装箱船的主要类型有哪些？</button>
+                    <button class="btn btn-success" onclick="document.getElementById('userInput').value='船舶燃料油价格走势如何？'; document.getElementById('userInput').focus();">船舶燃料油价格走势如何？</button>
+                    <button class="btn btn-success" onclick="document.getElementById('userInput').value='船舶安全管理的主要内容有哪些？'; document.getElementById('userInput').focus();">船舶安全管理的主要内容有哪些？</button>
+                </div>
+            </div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="avatar">
+                    <img src="/static/img/bot-avatar.svg" alt="Bot">
+                </div>
+                <div class="message-content">
+                    您好！我是航运智能助手，有什么可以帮助您吗？您可以点击上方的示例问题，或直接输入您感兴趣的问题。
+                </div>
+            </div>
+        </div>
+        <div class="input-container">
+            <textarea id="userInput" placeholder="请输入您的问题..."></textarea>
+            <button id="sendButton" onclick="sendMessage()">发送</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/highlight.min.js"></script>
+    <script>
+    function addBotMessage(message) {
+        const chatMessages = document.getElementById('chatMessages');
+        // 移除不必要的星号
+        message = message.replace(/\*\*([^*]+)\*\*/g, '$1');
+        message = message.replace(/\*([^*]+)\*/g, '$1');
+        // 配置marked选项
+        marked.setOptions({
+            highlight: function(code, lang) {
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true
+        });
+        // 解析Markdown内容
+        const parsedMessage = marked.parse(message);
+        chatMessages.innerHTML += `
+            <div class="message bot">
+                <div class="avatar">
+                    <img src="/static/img/bot-avatar.svg" alt="Bot">
+                </div>
+                <div class="message-content">${parsedMessage}</div>
+            </div>
+        `;
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function sendMessage() {
+        const userInput = document.getElementById('userInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const sendButton = document.getElementById('sendButton');
+        
+        const message = userInput.value.trim();
+        if (!message) return;
+        
+        // 禁用输入和按钮
+        userInput.disabled = true;
+        sendButton.disabled = true;
+        
+        // 添加用户消息
+        chatMessages.innerHTML += `
+            <div class="message user">
+                <div class="message-content">${message}</div>
+                <div class="avatar">
+                    <img src="/static/img/user-avatar.svg" alt="User">
+                </div>
+            </div>
+        `;
+        
+        // 清空输入框
+        userInput.value = '';
+        
+        // 滚动到底部
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // 打印请求数据
+        console.log('发送请求数据:', { question: message });
+        
+        // 显示加载状态
+        chatMessages.innerHTML += `
+            <div class="message bot" id="loading-message">
+                <div class="avatar">
+                    <img src="/static/img/bot-avatar.svg" alt="Bot">
+                </div>
+                <div class="message-content">
+                    <div class="loading-dots">思考中<span>.</span><span>.</span><span>.</span></div>
+                </div>
+            </div>
+        `;
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // 发送请求到后端
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒超时
+
+        fetch('/qa/ask', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ question: message }),
+            signal: controller.signal
+        })
+        .then(response => {
+            clearTimeout(timeoutId);
+            if (!response.ok) {
+                throw new Error(`HTTP错误! 状态码: ${response.status}`);
+            }
+            return response.json().catch(error => {
+                console.error('JSON解析错误:', error);
+                throw new Error('服务器返回了无效的数据格式');
+            });
+        })
+        .then(data => {
+            // 移除加载状态消息
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+            
+            console.log('收到响应数据:', data);
+            
+            if (data.code !== 200) {
+                throw new Error(data.message || '请求失败');
+            }
+            
+            const answer = data.data?.answer || '抱歉，无法获取回答';
+            addBotMessage(answer);
+        })
+        .catch(error => {
+            console.error('请求错误:', error);
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+            
+            if (error.name === 'AbortError') {
+                addBotMessage('请求超时，请稍后重试。如果问题持续存在，请尝试简化您的问题。');
+            } else {
+                addBotMessage(error.message || '抱歉，服务器出现错误，请稍后再试。');
+            }
+        })
+        .finally(() => {
+            // 重新启用输入和按钮
+            userInput.disabled = false;
+            sendButton.disabled = false;
+            userInput.focus();
+        });
+    }
+
+    // 获取CSRF Token的函数
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // 添加回车发送功能
+    document.getElementById('userInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        功能模块访问趋势
+                    </div>
+                    <div class="panel-body">
+                        <div id="moduleLine" style="width: 100%;height:300px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-5">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        用户类型统计
+                    </div>
+                    <div class="panel-body">
+                        <div id="userBar" style="width: 100%;height:300px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-7">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        功能模块访问占比
+                    </div>
+                    <div class="panel-body">
+                        <div id="modulePie" style="width: 100%;height:300px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                用户活跃度时段分布
+            </div>
+            <div class="panel-body">
+                <div id="activityStack" style="width: 100%;height:300px;"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            initModuleLine()
+            initModulePie()
+            initUserBar()
+            initActivityStack()
+        })
+
+        function initModuleLine() {
+            var myChart = echarts.init(document.getElementById('moduleLine'));
+            var option = {
+                title: {
+                    text: '功能模块访问趋势',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['知识图谱', '船舶识别', '资讯查询', '发言论坛'],
+                    bottom: 0
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '10%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: []
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: []
+            };
+            $.ajax({
+                url: '/chart/module-line',
+                type: 'GET',
+                dataType: 'JSON',
+                success: function (res) {
+                    if (res.status) {
+                        option.xAxis.data = res.xAxis;
+                        option.series = res.series;
+                        myChart.setOption(option);
+                    }
+                }
+            });
+        }
+
+        function initModulePie() {
+            var myChart = echarts.init(document.getElementById('modulePie'));
+            var option = {
+                title: {
+                    text: '功能模块访问占比',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    bottom: 0
+                },
+                series: [{
+                    name: '访问量',
+                    type: 'pie',
+                    radius: '60%',
+                    avoidLabelOverlap: true,
+                    label: {
+                        show: true,
+                        formatter: function(params) {
+                            return params.name + '\n' + params.value + '次 (' + params.percent + '%)';
+                        },
+                        position: 'outside',
+                        distanceToLabelLine: 15
+                    },
+                    labelLine: {
+                        show: true,
+                        length: 15,
+                        length2: 20
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }]
+            };
+            $.ajax({
+                url: '/chart/module-pie',
+                type: 'GET',
+                dataType: 'JSON',
+                success: function (res) {
+                    if (res.status) {
+                        option.series[0].data = res.series;
+                        myChart.setOption(option);
+                    }
+                }
+            });
+        }
+
+        function initUserBar() {
+            var myChart = echarts.init(document.getElementById('userBar'));
+            var option = {
+                title: {
+                    text: '用户类型统计',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '10%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: []
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: []
+            };
+            $.ajax({
+                url: '/chart/user-bar',
+                type: 'GET',
+                dataType: 'JSON',
+                success: function (res) {
+                    if (res.status) {
+                        option.xAxis.data = res.xAxis;
+                        option.series = res.series;
+                        myChart.setOption(option);
+                    }
+                }
+            });
+        }
+
+
+
+        function initActivityStack() {
+            var myChart = echarts.init(document.getElementById('activityStack'));
+            var option = {
+                title: {
+                    text: '用户活跃度时段分布',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {
+                    data: ['工作日', '周末'],
+                    bottom: 0
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '10%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: []
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: []
+            };
+            $.ajax({
+                url: '/chart/activity-stack',
+                type: 'GET',
+                dataType: 'JSON',
+                success: function (res) {
+                    if (res.status) {
+                        option.xAxis.data = res.xAxis;
+                        option.series = res.series;
+                        myChart.setOption(option);
+                    }
+                }
+            });
+        }
+    </script>
+{% endblock %}

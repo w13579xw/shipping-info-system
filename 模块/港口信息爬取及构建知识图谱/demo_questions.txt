@@ -1,0 +1,5 @@
+位于中国且属于东南亚航线的港口有哪些？
+
+MATCH (port:港口)-[:located_in]->(city:城市)-[:belongs_to]->(country:国家 {name:'中国'}),
+      (port)-[:on_route]->(route:航线 {name:'东南亚'})
+RETURN DISTINCT port

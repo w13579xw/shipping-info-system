@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.title }} - 论坛</title>
+    <link rel="shortcut icon" href="/static/favicon/user.ico" type="image/x-icon">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container py-4">
+        <div class="mb-4">
+            <a href="/forum/list" class="btn btn-outline-secondary">返回列表</a>
+        </div>
+
+        {% if messages %}
+        <div class="messages mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="card-title mb-3">{{ post.title }}</h2>
+                <div class="text-muted mb-3">
+                    <small>作者: {{ post.author.username }} | 发布时间: {{ post.created_at|date:"Y-m-d H:i" }}</small>
+                </div>
+                <div class="card-text mb-4" style="white-space: pre-wrap;">{{ post.content }}</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">评论 ({{ comments.count }})</h5>
+            </div>
+            <div class="card-body">
+                <form id="commentForm" onsubmit="return checkLoginAndSubmit(event)" class="mb-4">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <textarea name="content" class="form-control" rows="3" placeholder="写下你的评论..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">发表评论</button>
+                </form>
+
+                <div class="comments-list">
+                    {% for comment in comments %}
+                    <div class="comment mb-3 p-3 bg-light rounded">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>{{ comment.author.username }}</strong>
+                            <div>
+                                <small class="text-muted me-3">{{ comment.created_at|date:"Y-m-d H:i" }}</small>
+                                {% if request.session.user_info.id == comment.author.id %}
+                                <button class="btn btn-danger btn-sm" onclick="deleteComment({{ comment.id }})">删除</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div style="white-space: pre-wrap;">{{ comment.content }}</div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted">暂无评论，来发表第一条评论吧！</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function checkLoginAndSubmit(event) {
+            event.preventDefault();
+            {% if not request.session.user_info %}
+                // 保存当前URL到session
+                fetch('/user/save_redirect_url', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1]
+                    },
+                    body: JSON.stringify({ redirect_url: window.location.pathname })
+                }).then(() => {
+                    window.location.href = '/user/login';
+                });
+                return false;
+            {% else %}
+            // 如果用户已登录，提交评论
+            const form = document.getElementById('commentForm');
+            const formData = new FormData(form);
+            fetch('/forum/post/{{ post.id }}/comment', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1]
+                },
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                }
+            });
+            return false;
+            {% endif %}
+        }
+
+        // 原有的deleteComment函数
+        function deleteComment(commentId) {
+            if (confirm('确定要删除这条评论吗？')) {
+                fetch(`/forum/comment/${commentId}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1]
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('删除失败，请稍后重试');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

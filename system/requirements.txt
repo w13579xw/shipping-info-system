@@ -1,0 +1,37 @@
+# 航运信息系统 - 运行时依赖
+# 安装：pip install -r requirements.txt
+
+# Web 框架
+Django>=3.2,<6
+
+# 环境变量加载（.env）
+python-dotenv>=1.0
+
+# 生产部署（Docker / Render 等）
+gunicorn>=21.0
+whitenoise>=6.0
+
+# 数据库驱动
+pymysql>=1.0            # MySQL（默认数据库，纯 Python 实现，Windows 无需编译）
+# mysqlclient>=2.1       # 也可使用 mysqlclient（需预编译 wheel 或编译环境）
+pymongo>=4.0            # MongoDB（新闻数据）
+py2neo>=2021.2          # Neo4j（知识图谱）
+
+# 大模型 API
+openai>=1.0             # DeepSeek（OpenAI 兼容接口）
+
+# 船舶识别（YOLO）
+ultralytics>=8.0
+opencv-python>=4.5
+numpy
+
+# 全文检索 / 文本处理
+jieba
+PyStemmer
+
+# 知识图谱构建工具
+pandas
+tqdm
+
+# 验证码图片生成
+Pillow

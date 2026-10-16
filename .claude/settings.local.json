@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -rf .git)",
+      "Bash(git init *)",
+      "Bash(git branch *)",
+      "Bash(git add *)",
+      "Bash(grep -rIal 'sk-7611\\\\|django-insecure-w$itr\\\\|12345678' .git/objects/)"
+    ]
+  }
+}

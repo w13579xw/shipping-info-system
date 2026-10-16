@@ -1,0 +1,53 @@
+# Render.com 部署配置（Blueprint）
+# 使用前提：
+#   1. 在 render.com 创建账号，将本仓库连接到 Render
+#   2. 准备好外部服务：MySQL（Render 无原生 MySQL，可用 Aiven / PlanetScale / ClearDB 等）、
+#      MongoDB（可用 Atlas）、Neo4j（可用 Aura）、DeepSeek API Key
+# 注意：
+#   - 数据库默认使用 MySQL，需通过环境变量注入连接信息（下方 sync: false 的变量在
+#     Render 控制台填写）；若只想快速跑一个临时 demo，可把 DB_ENGINE 改为
+#     django.db.backends.sqlite3（但 Render 文件系统临时，重新部署会清空数据）。
+services:
+  - type: web
+    name: shipping-info-system
+    runtime: docker
+    plan: free
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com"
+      # --- MySQL（关系型数据库） ---
+      - key: DB_ENGINE
+        value: "django.db.backends.mysql"
+      - key: DB_NAME
+        value: "django"
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "3306"
+      # --- DeepSeek / OpenAI 兼容接口 ---
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_BASE_URL
+        value: "https://api.deepseek.com"
+      # --- MongoDB ---
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_NAME
+        value: "news_db"
+      - key: MONGODB_COLLECTION
+        value: "news_collection"
+      # --- Neo4j ---
+      - key: NEO4J_URI
+        sync: false
+      - key: NEO4J_USER
+        value: "neo4j"
+      - key: NEO4J_PASSWORD
+        sync: false

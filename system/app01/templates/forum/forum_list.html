@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>论坛 - 航运系统</title>
+    <link rel="shortcut icon" href="/static/favicon/user.ico" type="image/x-icon">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container py-4">
+        <div class="mb-3">
+            <a href="/" class="btn btn-outline-primary">返回主页</a>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-3">论坛讨论</h2>
+                <div class="d-flex gap-3">
+                    <div class="btn-group" role="group">
+                        <a href="/forum/list{% if sort_by %}?sort={{ sort_by }}{% endif %}" class="btn btn-outline-primary {% if filter_type == 'all' or not filter_type %}active{% endif %}">全部帖子</a>
+                        {% if request.session.user_info %}
+                        <a href="/forum/list?filter=my_posts{% if sort_by %}&sort={{ sort_by }}{% endif %}" class="btn btn-outline-primary {% if filter_type == 'my_posts' %}active{% endif %}">我发布的帖子</a>
+                        <a href="/forum/list?filter=my_comments{% if sort_by %}&sort={{ sort_by }}{% endif %}" class="btn btn-outline-primary {% if filter_type == 'my_comments' %}active{% endif %}">我评论的帖子</a>
+                        {% endif %}
+                    </div>
+                    <div class="btn-group" role="group">
+                        <a href="/forum/list{% if filter_type != 'all' %}?filter={{ filter_type }}{% endif %}" class="btn btn-outline-secondary {% if not sort_by or sort_by == 'latest' %}active{% endif %}">最新发布</a>
+                        <a href="/forum/list?sort=most_comments{% if filter_type != 'all' %}&filter={{ filter_type }}{% endif %}" class="btn btn-outline-secondary {% if sort_by == 'most_comments' %}active{% endif %}">评论最多</a>
+                    </div>
+                </div>
+            </div>
+            <a href="javascript:void(0)" onclick="checkLoginAndRedirect('/forum/post/add')" class="btn btn-primary">发布帖子</a>
+        </div>
+
+        {% if messages %}
+        <div class="messages mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row">
+            {% for post in posts %}
+            <div class="col-12 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><a href="/forum/post/{{ post.id }}" class="text-decoration-none">{{ post.title }}</a></h5>
+                        <p class="card-text text-muted">{{ post.content|truncatechars:200 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">作者: {{ post.author.username }} | 发布时间: {{ post.created_at|date:"Y-m-d H:i" }}</small>
+                            <div>
+                                <span class="badge bg-secondary me-2">{{ post.comments.count }} 条评论</span>
+                                {% if request.session.user_info.id == post.author.id %}
+                                <button class="btn btn-danger btn-sm" onclick="deletePost({{ post.id }})">删除</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">暂无帖子，来发布第一个帖子吧！</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function checkLoginAndRedirect(url) {
+            {% if not request.session.user_info %}
+                // 保存当前URL到session
+                fetch('/user/save_redirect_url', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1]
+                    },
+                    body: JSON.stringify({ redirect_url: url })
+                }).then(() => {
+                    window.location.href = '/user/login';
+                });
+            {% else %}
+                window.location.href = url;
+            {% endif %}
+        }
+
+        function deletePost(postId) {
+            if (confirm('确定要删除这个帖子吗？')) {
+                fetch(`/forum/post/${postId}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1]
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('删除失败，请稍后重试');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+# 航运信息系统 - 一键启动（web + MySQL + MongoDB + Neo4j）
+# 使用前请先准备 .env（复制 .env.example 并填入密钥）
+# 启动：docker compose up --build
+services:
+  web:
+    build: .
+    container_name: shipping-web
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # 容器内通过服务名访问其他服务
+      - MONGODB_URI=mongodb://mongo:27017
+      - NEO4J_URI=bolt://neo4j:7687
+      # 关系型数据库：MySQL
+      - DB_ENGINE=django.db.backends.mysql
+      - DB_NAME=django
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      # 密钥从 .env 注入
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DJANGO_DEBUG=${DJANGO_DEBUG:-True}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.deepseek.com}
+    volumes:
+      - media_data:/app/media
+    depends_on:
+      - mysql
+      - mongo
+      - neo4j
+
+  mysql:
+    image: mysql:8.0
+    container_name: shipping-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: django
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  mongo:
+    image: mongo:6
+    container_name: shipping-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  neo4j:
+    image: neo4j:5
+    container_name: shipping-neo4j
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD}
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+
+volumes:
+  media_data:
+  mysql_data:
+  mongo_data:
+  neo4j_data:

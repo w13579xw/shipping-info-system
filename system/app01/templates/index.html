@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>航运信息系统</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 160px 0 140px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-top: 0;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%),
+                          linear-gradient(-45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%),
+                          linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.1) 75%),
+                          linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.1) 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+
+        .hero-title {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-subtitle {
+            font-size: 1.4em;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .search-box {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .features-section {
+            padding: 80px 0;
+            background-color: #ffffff;
+            margin-top: 0;
+        }
+
+        .feature-card {
+            background: white;
+            text-align: center;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #2a5298;
+        }
+
+        .feature-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .feature-card p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .stats-section {
+            background-color: #f8f9fa;
+            padding: 40px 0;
+            margin-top: 40px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2a5298;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; align-items: center;">
+        {% if request.session.user_info %}
+                <span class="user-status" style="display: inline-flex; align-items: center; color: #2a5298; margin-right: 15px; background-color: rgba(255, 255, 255, 0.95); padding: 8px 20px; border-radius: 20px; box-shadow: 0 3px 6px rgba(0,0,0,0.08); font-size: 16px; font-weight: 600;">
+                    <svg style="width: 18px; height: 18px; margin-right: 8px; fill: currentColor; vertical-align: middle;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                    {{ request.session.user_info.username }}
+                </span>
+                <a href="/user/logout" class="btn btn-primary logout-btn" style="display: inline-flex; align-items: center; padding: 8px 20px; font-size: 16px; border-radius: 20px; background-color: #2a5298; border: none; color: white; transition: all 0.3s ease; box-shadow: 0 3px 6px rgba(0,0,0,0.1); text-decoration: none;">
+                    <svg style="width: 16px; height: 16px; margin-right: 8px; fill: currentColor; vertical-align: middle;" viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+                    退出登录
+                </a>
+        {% else %}
+            <a href="/user/login" class="btn btn-primary" style="display: inline-flex; align-items: center; padding: 8px 20px; font-size: 16px; border-radius: 20px; background-color: #2a5298; border: none; color: white; transition: all 0.3s ease; margin-right: 10px; box-shadow: 0 3px 6px rgba(0,0,0,0.1); text-decoration: none;">
+                <svg style="width: 16px; height: 16px; margin-right: 8px; fill: currentColor; vertical-align: middle;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                用户登录
+            </a>
+            <a href="/user/register" class="btn btn-primary" style="display: inline-flex; align-items: center; padding: 8px 20px; font-size: 16px; border-radius: 20px; background-color: #2a5298; border: none; color: white; transition: all 0.3s ease; margin-right: 10px; box-shadow: 0 3px 6px rgba(0,0,0,0.1); text-decoration: none;">
+                <svg style="width: 16px; height: 16px; margin-right: 8px; fill: currentColor; vertical-align: middle;" viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                用户注册
+            </a>
+            <a href="/admin/login" class="btn btn-primary" style="display: inline-flex; align-items: center; padding: 8px 20px; font-size: 16px; border-radius: 20px; background-color: #2a5298; border: none; color: white; transition: all 0.3s ease; margin-left: 10px; box-shadow: 0 3px 6px rgba(0,0,0,0.1); text-decoration: none;">
+                <svg style="width: 16px; height: 16px; margin-right: 8px; fill: currentColor; vertical-align: middle;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                管理员登录
+            </a>
+        {% endif %}
+    </div>
+    <div class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">欢迎使用航运信息系统</h1>
+            <p class="hero-subtitle">为您提供全面的航运信息服务和专业的行业解决方案</p>
+            <div class="search-box">
+                <form id="searchForm" onsubmit="return handleSearch(event)">
+                    <input type="text" id="searchInput" placeholder="搜索航运信息、船舶、航线..." class="form-control">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="features-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-lg-3">
+                    <a href="/qa" style="text-decoration: none;">
+                        <div class="feature-card">
+                            <div class="feature-icon">❓</div>
+                            <h3>航运问答</h3>
+                            <p>专业的航运知识问答平台，解答您的疑惑</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <a href="/ship/identify" style="text-decoration: none;">
+                        <div class="feature-card">
+                            <div class="feature-icon">🚢</div>
+                            <h3>船舶识别</h3>
+                            <p>智能船舶识别系统，快速准确定位船只信息</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <a href="/news/list" style="text-decoration: none;">
+                        <div class="feature-card">
+                            <div class="feature-icon">📊</div>
+                            <h3>资讯查询</h3>
+                            <p>全面的航运市场资讯，助您掌握行业动态</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <a href="/forum/list" style="text-decoration: none;">
+                        <div class="feature-card">
+                            <div class="feature-icon">💬</div>
+                            <h3>发言论坛</h3>
+                            <p>航运从业者交流平台，分享经验与见解</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ port_count }}</div>
+                        <div class="stat-label">港口总数</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ ship_count }}</div>
+                        <div class="stat-label">船舶总数</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ news_count }}</div>
+                        <div class="stat-label">资讯总数</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ post_count }}</div>
+                        <div class="stat-label">论坛帖子
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+    function handleSearch(event) {
+        event.preventDefault();
+        const searchInput = document.getElementById('searchInput');
+        const searchQuery = encodeURIComponent(searchInput.value.trim());
+        if (searchQuery) {
+            window.open(`https://www.baidu.com/s?wd=${searchQuery}`, '_blank');
+        }
+        return false;
+    }
+    </script>
+</body>
+</html>

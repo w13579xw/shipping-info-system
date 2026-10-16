@@ -1,0 +1,92 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <div class="container">
+        <div style="margin-bottom: 10px" class="clearfix">
+            <a class="btn-success btn" href="/admin/add">
+                <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
+                新增管理员
+            </a>
+            <div style="float: right; width: 300px">
+                <form action="" method="get">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="q" placeholder="搜索" value="{{ search_word }}">
+                        <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit">
+                            <i class="glyphicon glyphicon-search"></i>
+                        </button>
+                    </span>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <!-- Default panel contents -->
+            <div class="panel-heading">
+                <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
+                管理员列表
+            </div>
+
+            <!-- Table -->
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>密码</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for obj in data_lst %}
+                    <tr>
+                        <th scope="row">{{ obj.id }}</th>
+                        <td>{{ obj.username }}</td>
+                        <td>**********</td>
+                        <td>
+                            <a class="btn btn-primary btn-xs" href="/admin/{{ obj.id }}/edit">编辑</a>
+                            <a class="btn btn-danger btn-xs" onclick="confirmDelete({{ obj.id }})" href="javascript:void(0)">删除</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <ul class="pagination">
+            {{ page_li_str }}
+        </ul>
+    </div>
+
+    <!-- 删除确认对话框 -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="deleteConfirmModalLabel">确认删除</h4>
+                </div>
+                <div class="modal-body">
+                    确定要删除这个管理员吗？此操作不可恢复。
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">确认删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function confirmDelete(adminId) {
+            $('#deleteConfirmModal').modal('show');
+            $('#confirmDeleteBtn').click(function() {
+                window.location.href = '/admin/' + adminId + '/del';
+            });
+        }
+
+        // 每次模态框隐藏时清除事件绑定，避免重复绑定
+        $('#deleteConfirmModal').on('hidden.bs.modal', function () {
+            $('#confirmDeleteBtn').off('click');
+        });
+    </script>
+{% endblock %}

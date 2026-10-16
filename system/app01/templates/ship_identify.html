@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>船舶识别 - 航运信息系统</title>
+    <link rel="shortcut icon" href="/static/favicon/user.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        body {
+            background: url('/static/img/login-bg.jpg') center/cover no-repeat fixed;
+            padding: 20px;
+        }
+        .upload-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .result-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        #uploadPreview {
+            width: 100%;
+            height: 600px;
+            margin-top: 20px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            object-fit: contain;
+            background-color: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: visible;
+        }
+        #uploadPreview.has-image::before,
+        #uploadPreview.has-image::after {
+            display: none;
+        }
+        #uploadPreview::before {
+            content: '\f03e';
+            font-family: 'FontAwesome';
+            font-size: 3em;
+            color: #dee2e6;
+            margin-bottom: 15px;
+            display: var(--before-display, block);
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            pointer-events: none;
+            visibility: visible;
+            opacity: 1;
+        }
+        #uploadPreview::after {
+            content: '请选择或拖拽图片到此处';
+            color: #6c757d;
+            font-size: 1.2em;
+            display: var(--after-display, block);
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+            z-index: 2;
+            pointer-events: none;
+            visibility: visible;
+            opacity: 1;
+        }
+        .back-button {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            padding: 8px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            background-color: #ffffff;
+            border: 1px solid #2a5298;
+            color: #2a5298;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-decoration: none;
+        }
+        .back-button:hover {
+            color: #2a5298;
+            text-decoration: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-button">&larr; 返回主页</a>
+        <h2 class="text-center mb-4" style="font-size: 2.5em; font-weight: 600; color: #2a5298; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); margin: 40px 0; letter-spacing: 2px; position: relative; z-index: 1;">船舶识别系统</h2>
+        
+        <div class="upload-container">
+            <h4>上传图片</h4>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <input type="file" class="form-control" id="imageInput" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn btn-primary">开始识别</button>
+            </form>
+            <div id="uploadPreview" class="img-responsive"></div>
+        </div>
+
+        <div class="result-container">
+            <h4>识别结果</h4>
+            <div id="detectionInfo" class="mt-3" style="display: none;">
+                <div class="detection-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('uploadPreview');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.style.backgroundImage = `url(${e.target.result})`;
+                    preview.style.display = 'block';
+                    preview.style.border = '2px dashed #dee2e6';
+                    preview.style.background = `url(${e.target.result}) center/contain no-repeat`;
+                    preview.style.width = '100%';
+                    preview.style.height = '600px';
+                    preview.style.overflow = 'visible';
+                    preview.style.position = 'relative';
+                    preview.style.zIndex = '0';
+                    preview.style.visibility = 'visible';
+                    preview.style.opacity = '1';
+                    preview.style.setProperty('--before-display', 'none');
+                    preview.style.setProperty('--after-display', 'none');
+                    // 隐藏提示文本和图标
+                    preview.classList.add('has-image');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                // 重置预览区域
+                preview.style.backgroundImage = 'none';
+                preview.style.display = 'flex';
+                preview.style.border = '2px dashed #dee2e6';
+                preview.style.background = '#f8f9fa';
+                preview.classList.remove('has-image');
+            }
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            const imageFile = document.getElementById('imageInput').files[0];
+            formData.append('image', imageFile);
+
+            const submitButton = document.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = '识别中...';
+
+            console.log('开始发送识别请求...');
+            fetch('/ship/detect', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('收到服务器响应:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('解析响应数据:', data);
+                if (data.success) {
+                    const detectionInfo = document.getElementById('detectionInfo');
+                    const detectionList = detectionInfo.querySelector('.detection-list');
+
+                    // 清空之前的检测结果
+                    detectionList.innerHTML = '';
+                    
+                    // 显示检测结果详情
+                    if (data.detections && data.detections.length > 0) {
+                        data.detections.forEach((detection, index) => {
+                            const detectionItem = document.createElement('div');
+                            detectionItem.className = 'alert alert-info';
+                            detectionItem.innerHTML = `
+                                <strong>目标 ${index + 1}:</strong><br>
+                                类型: ${detection.class_zh || '未知'}<br>
+                                置信度: ${(detection.confidence * 100).toFixed(2)}%<br>
+                                概述: ${detection.description || '暂无概述'}
+                            `;
+                            detectionList.appendChild(detectionItem);
+                        });
+                        detectionInfo.style.display = 'block';
+                    } else {
+                        detectionInfo.style.display = 'none';
+                    }
+                    console.log('检测结果:', data.detections);
+                } else {
+                    throw new Error(data.error || '识别失败');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('识别失败：' + (error.message || '请检查网络连接并稍后重试'));
+            })
+            .finally(() => {
+                submitButton.disabled = false;
+                submitButton.textContent = '开始识别';
+            });
+        });
+    </script>
+</body>
+</html>
