@@ -2,7 +2,7 @@
 
 一个面向航运领域的综合信息管理系统，集成了**用户管理、管理员系统、航运问答（知识图谱 + 大模型）、船舶识别（YOLO 深度学习）、资讯查询与推荐（爬虫 + BM25 检索 + 个性化推荐）、数据可视化、论坛**等功能。
 
-> 本项目是一个 Django Web 项目，主程序位于 [`system/`](system/) 目录。`模块/` 目录存放各功能模块的开发源码（爬虫、模型训练、知识图谱构建等），`后端参考模板/` 为开发过程中的参考资料。
+> 本项目是一个 Django Web 项目，主程序位于 [`system/`](system/) 目录，各功能模块的开发源码位于 `模块/` 目录。
 
 ---
 
@@ -77,35 +77,25 @@
 
 ```
 系统/
-├── system/                     # ★ Django 主项目（可运行的 Web 演示）
+├── system/                     # Django 主项目（可运行的 Web 演示）
 │   ├── manage.py
 │   ├── myProject/              # 项目配置（settings / urls / wsgi / asgi）
-│   ├── app01/                  # 主应用
-│   │   ├── models.py           # 数据模型
-│   │   ├── views/              # 视图函数（account/user/admin/news/qa/ship/chart/forum/index/register）
-│   │   ├── utils/              # 工具类（bm25、知识图谱、验证码、加密、分页等）
-│   │   ├── middleware/         # 认证中间件
-│   │   ├── templates/          # 页面模板
-│   │   ├── static/             # 静态资源 + 船舶识别模型 ship_detection.pt
-│   │   └── migrations/         # 数据库迁移
-│   ├── media/                  # 上传文件（运行时生成，可不提交）
+│   ├── app01/                  # 主应用（视图、模型、模板、静态资源、迁移）
+│   ├── media/                  # 用户上传的文件
 │   └── md_pic/                 # 系统截图（用于文档）
 │
-├── docs/                       # ★ 按模块拆分的详细文档
+├── docs/                       # 按模块拆分的详细文档
 │   ├── 01-知识图谱问答系统.md
 │   ├── 02-船舶图像检测系统.md
 │   ├── 03-资讯查询与推荐系统.md
 │   ├── 04-系统设计与数据库.md
 │   └── 05-功能模块与界面展示.md
 │
-├── 模块/                        # ★ 各功能模块开发源码（按需上传）
-│   ├── 新闻资讯爬取/             #   爬虫脚本，写入 MongoDB
-│   ├── 港口信息爬取及构建知识图谱/ #   爬虫 + 构建 Neo4j 知识图谱（含 port_data.json）
-│   ├── 船舶识别/                #   数据集（1.1GB）+ 训练脚本 + 训练结果
-│   ├── 问答系统/                #   问答系统原型（独立 Django 项目）
-│   └── 系统ER图.png
-│
-└── 后端参考模板/                # 参考资料（zip，无需上传）
+└── 模块/                        # 各功能模块的开发源码
+    ├── 新闻资讯爬取/             # 新闻爬虫脚本
+    ├── 港口信息爬取及构建知识图谱/ # 知识图谱构建脚本
+    ├── 问答系统/                # 问答系统原型
+    └── 系统ER图.png
 ```
 
 ---
@@ -143,7 +133,7 @@ pip install -r requirements.txt
 
 ### 4. 配置环境变量（.env）
 
-所有敏感配置（数据库密码、API Key）已改为从环境变量读取。复制示例配置并填入你自己的值：
+复制示例配置文件并填入你自己的值：
 
 ```bash
 cd system
@@ -151,7 +141,7 @@ cp .env.example .env      # Linux / macOS
 # Windows 请用：copy .env.example .env
 ```
 
-编辑 `.env`，填入 MySQL 连接信息（默认 `DB_ENGINE=mysql`），按需填入 MongoDB / Neo4j 连接信息和 DeepSeek API Key。`.env` 已被 `.gitignore` 忽略，不会上传到 GitHub。
+编辑 `.env`，填入 MySQL 连接信息（默认 `DB_ENGINE=mysql`），按需填入 MongoDB / Neo4j 连接信息和 DeepSeek API Key。
 
 ### 5. 初始化数据库
 
@@ -191,74 +181,6 @@ docker compose up --build
 启动后访问 http://localhost:8000/，首次启动会自动执行数据库迁移。
 
 > 提示：镜像会安装 Ultralytics/PyTorch，体积较大、首次构建较慢；新闻数据和知识图谱数据仍需通过 `模块/` 下的脚本导入。
-
----
-
-## 线上部署（网页 Demo）
-
-> ⚠️ **GitHub Pages 只能托管静态页面，无法运行 Django 后端**。要让他人直接在网页上使用，需要部署到能运行 Python/Django 的云平台。
-
-### 推荐方案
-
-| 平台 | 说明 | 成本 |
-| --- | --- | --- |
-| [Render](https://render.com) | 支持 Python Web 服务，部署简单，有免费额度 | 免费档可用 |
-| [Railway](https://railway.app) | 一键部署，支持多服务（可同时跑 MySQL/MongoDB/Neo4j） | 免费额度有限 |
-| [PythonAnywhere](https://www.pythonanywhere.com) | 专门托管 Django，支持 MySQL，适合初学者 | 免费档可用 |
-| 宝塔面板 / VPS | 自建服务器，灵活度最高 | 需一台服务器 |
-
-> 本项目已附带 [render.yaml](system/render.yaml)，把仓库连接到 Render 后可一键创建 Web 服务。Render 原生无 MySQL，需搭配 Aiven / PlanetScale / ClearDB 等外部 MySQL，以及 MongoDB Atlas、Neo4j Aura 等托管服务使用。
-
-### 部署说明
-
-- **MySQL**：正式使用需提供外部 MySQL 实例，通过环境变量注入连接信息。
-- **MongoDB / Neo4j**：用托管服务（如 MongoDB Atlas、Neo4j Aura），通过环境变量注入连接信息。
-- **DeepSeek API Key**：通过平台环境变量注入，**不要把 Key 提交进仓库**。
-- **船舶识别模型**：`ship_detection.pt`（约 5.3MB）可直接提交；但 Ultralytics 依赖 PyTorch，镜像体积较大。
-
----
-
-## 文件上传清单（哪些需要上传到 GitHub）
-
-### ✅ 需要上传
-
-| 文件/目录 | 原因 |
-| --- | --- |
-| `system/`（整个 Django 项目） | 核心可运行代码 |
-| `system/app01/static/models/ship_detection.pt` | 船舶识别模型，demo 必需 |
-| `system/md_pic/` | 文档截图，README 展示用 |
-| `docs/` | 按模块拆分的详细文档 |
-| `模块/新闻资讯爬取/` | 新闻数据来源脚本（体积小） |
-| `模块/港口信息爬取及构建知识图谱/` | 知识图谱构建脚本 + `port_data.json`（1.1MB） |
-| `模块/问答系统/`（除 `db.sqlite3`） | 问答原型参考代码 |
-| `模块/系统ER图.png` | 文档用图 |
-
-### ❌ 不需要上传（或需排除）
-
-| 文件/目录 | 原因 |
-| --- | --- |
-| `模块/船舶识别/数据集获取/` | **约 1.1GB** 数据集，远超 GitHub 单仓库建议体积 |
-| `模块/船舶识别/训练结果/` | **约 29MB** 训练产物（权重、图表、TensorBoard 日志） |
-| `后端参考模板/`（3 个 zip） | 参考资料，与运行无关 |
-| `其它/`（论文、查重报告、签名等） | 含个人隐私信息，勿上传（有用架构图已提取到 `system/md_pic/`） |
-| `*.sqlite3`、`__pycache__/`、`.idea/`、`media/`、`.env` | 运行产物 / IDE 文件 / 密钥 |
-
-> 建议做法：**只把本仓库（`系统/` 目录）整体上传**，`system/` 是唯一可运行的 demo，`模块/` 中的爬虫与构建脚本作为源码保留，`船舶识别` 的大数据集和训练结果用 `.gitignore` 排除。
-
----
-
-## 安全注意事项（重要）
-
-已将所有敏感配置改为从环境变量 `.env` 读取（`.env` 已被 `.gitignore` 忽略，不会上传到 GitHub）：
-
-- ✅ MySQL 密码 → `DB_PASSWORD`
-- ✅ DeepSeek API Key → `OPENAI_API_KEY`
-- ✅ Neo4j 密码 → `NEO4J_PASSWORD`
-- ✅ MongoDB / 数据库连接信息 → 对应环境变量
-
-> ⚠️ 特例：`SECRET_KEY` 参与了密码加盐（见 `app01/utils/encrypt.py`），更换会导致已注册用户 / 默认管理员密码失效，因此保留为默认值。**正式上线时请通过 `DJANGO_SECRET_KEY` 覆盖，并重置相关账号密码。**
-
-部署到线上时，请务必在平台注入环境变量、设置 `DJANGO_DEBUG=False`、配置 `DJANGO_ALLOWED_HOSTS`。
 
 ---
 
