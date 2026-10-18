@@ -31,6 +31,8 @@ QA/
 ├─ Named_Entity_Recognition.py 词典版问答（兜底，含 6 种 Cypher 模板）
 ├─ build_kg_utils.py           知识图谱构建脚本
 ├─ prepare_data.py             训练数据合成脚本
+├─ evaluate.py                 模块级测试脚本（指标计算）
+├─ 模块测试与指标说明.md         各模块指标/测试方法说明
 ├─ models/                     深度学习组件（PyTorch）
 │   ├─ crf.py                  线性链 CRF
 │   ├─ intent_textcnn.py       字符级 TextCNN 意图分类
