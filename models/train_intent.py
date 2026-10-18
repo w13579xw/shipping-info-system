@@ -12,6 +12,7 @@ import torch.optim as optim
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 
+from log_utils import setup_log  # noqa: E402
 from models.intent_textcnn import TextCNN, PAD, OOV  # noqa: E402
 
 LABELS = [
@@ -55,6 +56,7 @@ def encode(text, word2id):
 
 
 def main():
+    setup_log("train_intent")
     random.seed(SEED)
     torch.manual_seed(SEED)
 

@@ -12,7 +12,9 @@ sys.path.insert(0, BASE_DIR)
 
 from models.intent_textcnn import IntentClassifier  # noqa: E402
 from models.ner_bilstm_crf import NERModel  # noqa: E402
-from models.entity_normalizer import normalize  # noqa: E402
+from models.entity_normalizer import normalize as _ngram_normalize  # noqa: E402
+from models.entity_normalizer import ENTITY_LISTS  # noqa: E402
+from models.esim import ESIMEntityMatcher  # noqa: E402
 
 # 意图 -> 词典版 query_type
 INTENT_TO_QUERY = {
@@ -47,37 +49,69 @@ ETYPE_TO_KEY = {
 }
 
 _intent_model = None
+_bert_intent_model = None
 _ner_model = None
+_esim_matcher = None
 
 
 def _load_models():
-    global _intent_model, _ner_model
-    if _intent_model is None:
-        _intent_model = IntentClassifier(os.path.join(BASE_DIR, "checkpoints", "intent.pt"))
+    global _intent_model, _bert_intent_model, _ner_model, _esim_matcher
     if _ner_model is None:
         _ner_model = NERModel(os.path.join(BASE_DIR, "checkpoints", "ner.pt"))
+    if _bert_intent_model is None:
+        try:
+            from models.bert_intent import BertIntentClassifier  # noqa: E402
+            _bert_intent_model = BertIntentClassifier(
+                os.path.join(BASE_DIR, "checkpoints", "bert_intent.pt"))
+        except Exception:
+            _bert_intent_model = None
+    if _intent_model is None:
+        _intent_model = IntentClassifier(os.path.join(BASE_DIR, "checkpoints", "intent.pt"))
+    if _esim_matcher is None:
+        _esim_matcher = ESIMEntityMatcher(
+            os.path.join(BASE_DIR, "checkpoints", "esim.pt"), entity_lists=ENTITY_LISTS)
     return _intent_model, _ner_model
+
+
+def _predict_intent(question):
+    """优先使用 BERT+TextCNN；不可用时回退字符级 TextCNN。"""
+    global _bert_intent_model, _intent_model
+    if _bert_intent_model is not None and _bert_intent_model.model is not None:
+        intent, conf = _bert_intent_model.predict(question)
+        if intent is not None:
+            return intent, conf
+    if _intent_model is not None:
+        return _intent_model.predict(question)
+    return None, 0.0
+
+
+def _normalize(word, etype):
+    """优先使用 ESIM 语义匹配；不可用时回退字符 n-gram。"""
+    global _esim_matcher
+    if _esim_matcher is not None and _esim_matcher.model is not None:
+        return _esim_matcher.normalize(word, etype)
+    return _ngram_normalize(word, etype)
 
 
 def answer(question):
     """对问题返回答案列表（与词典版 process_question 返回结构一致）。"""
     try:
-        intent_model, ner_model = _load_models()
-        if intent_model.model is None or ner_model.model is None:
+        _load_models()
+        if _intent_model.model is None or _ner_model.model is None:
             return _fallback(question)
     except Exception:
         return _fallback(question)
 
     try:
-        intent, _conf = intent_model.predict(question)
+        intent, _conf = _predict_intent(question)
         query_type = INTENT_TO_QUERY.get(intent, "unknown")
 
         entities = {"航线": None, "船只": None, "港口": None, "任务": None,
                     "年份": None, "负责人": None, "国家": None}
-        for word, etype in ner_model.predict(question):
+        for word, etype in _ner_model.predict(question):
             key = ETYPE_TO_KEY.get(etype)
             if key and entities[key] is None:
-                entities[key] = normalize(word, etype)
+                entities[key] = _normalize(word, etype)
 
         required = REQUIRED_ENTITY.get(query_type)
         if required and entities.get(required) is None:

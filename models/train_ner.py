@@ -10,6 +10,7 @@ import torch.optim as optim
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, BASE_DIR)
 
+from log_utils import setup_log  # noqa: E402
 from models.ner_bilstm_crf import BiLSTMCRF, PAD, OOV  # noqa: E402
 
 ENTITY_TYPES = ["event", "country", "mission", "person", "port", "ship", "year"]
@@ -119,6 +120,7 @@ def evaluate(model, data, word2id, tag2id, id2tag):
 
 
 def main():
+    setup_log("train_ner")
     random.seed(SEED)
     torch.manual_seed(SEED)
 

@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
-"""模块级测试脚本：分别评估三个模块（不含系统联调）。
+"""模块级测试脚本：分别评估各模块（不含系统联调）。
 
-  - 意图识别（TextCNN）：准确率 + 各类别精确率/召回率/F1
+  - 意图识别（字符级 TextCNN）：准确率 + 各类别精确率/召回率/F1
   - 命名实体识别（BiLSTM-CRF）：实体级精确率/召回率/F1 + 各实体类型分解
   - 实体规范化（字符 n-gram）：确定性规则单元测试
+  - 实体规范化（ESIM）：匹配准确率（训练型，语义匹配）
+  - 意图识别（BERT+TextCNN，可选）：准确率（需 transformers + 中文 BERT 权重）
+
+测试结果同时备份到 logs/evaluate_*.log。
 
 用法：
   python evaluate.py
@@ -17,6 +21,7 @@ import torch
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from log_utils import setup_log  # noqa: E402
 from models.intent_textcnn import IntentClassifier  # noqa: E402
 from models.ner_bilstm_crf import BiLSTMCRF, NERModel  # noqa: E402
 from models.entity_normalizer import normalize  # noqa: E402
@@ -150,7 +155,59 @@ def eval_normalizer():
     print("  单元测试通过 %d/%d" % (passed, len(cases)))
 
 
+def eval_esim():
+    print()
+    print("=" * 60)
+    print("【4】实体规范化模块（ESIM 语义匹配）")
+    print("=" * 60)
+    ckpt_path = os.path.join(BASE, "checkpoints", "esim.pt")
+    if not os.path.exists(ckpt_path):
+        print("  [跳过] 未找到 %s，请先运行 models/train_esim.py" % ckpt_path)
+        return
+    from models.esim import ESIM  # noqa: E402
+    from models.train_esim import load_pairs, accuracy  # noqa: E402
+    ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+    model = ESIM(ckpt["vocab_size"], ckpt.get("embed_dim", 100),
+                 ckpt.get("hidden_dim", 128))
+    model.load_state_dict(ckpt["model_state"])
+    model.eval()
+    test_pairs = load_pairs(os.path.join(BASE, "data", "esim", "test.csv"))
+    acc = accuracy(model, test_pairs, ckpt["word2id"])
+    print("  匹配准确率 accuracy = %.4f  (%d 条测试)" % (acc, len(test_pairs)))
+
+
+def eval_bert_intent():
+    print()
+    print("=" * 60)
+    print("【5】意图识别模块（BERT + TextCNN，可选）")
+    print("=" * 60)
+    ckpt_path = os.path.join(BASE, "checkpoints", "bert_intent.pt")
+    try:
+        from models.bert_intent import BertIntentClassifier  # noqa: E402
+    except Exception:
+        print("  [跳过] 未安装 transformers，无法加载 BERT 模型。")
+        print("         安装：pip install transformers，并准备中文 BERT 权重（见 models/train_bert_intent.py）")
+        return
+    if not os.path.exists(ckpt_path):
+        print("  [跳过] 未找到 %s，请先运行 models/train_bert_intent.py" % ckpt_path)
+        return
+    clf = BertIntentClassifier(ckpt_path)
+    if clf.model is None:
+        print("  [跳过] BERT 权重缺失或 transformers 未安装，无法评估。")
+        return
+    rows = load_intent_test()
+    correct = 0
+    for q, gold in rows:
+        pred, _ = clf.predict(q)
+        if pred == gold:
+            correct += 1
+    print("  测试集准确率 accuracy = %.4f  (%d/%d)" % (correct / len(rows), correct, len(rows)))
+
+
 if __name__ == "__main__":
+    setup_log("evaluate")
     eval_intent()
     eval_ner()
     eval_normalizer()
+    eval_esim()
+    eval_bert_intent()

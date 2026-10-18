@@ -4,3 +4,7 @@ torch>=2.0
 numpy
 pandas
 tqdm
+transformers>=4.44
+
+# NOTE: BERT weights (bert-base-chinese, ~400MB) are NOT installed by pip.
+# Download them separately and set BERT_MODEL_DIR — see models/train_bert_intent.py.

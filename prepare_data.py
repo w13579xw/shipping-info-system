@@ -14,6 +14,7 @@ import entity_kb
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INTENT_DIR = os.path.join(BASE_DIR, "data", "intent")
 NER_DIR = os.path.join(BASE_DIR, "data", "ner")
+ESIM_DIR = os.path.join(BASE_DIR, "data", "esim")
 
 SEED = 42
 TRAIN_RATIO = 0.8
@@ -111,6 +112,52 @@ def _write_bio(path, samples):
             f.write("\n")
 
 
+# 实体类型 -> 规范实体表
+_ESIM_TYPES = {
+    "event": "EVENTS",
+    "country": "countries",
+    "mission": "missions",
+    "person": "persons",
+    "port": "ports",
+    "ship": "ships",
+    "year": "years",
+}
+
+
+def _fuzzy(c, etype):
+    """生成模糊写法：港口去「港」、船只去「号」。"""
+    if etype == "port" and c.endswith("港") and len(c) > 2:
+        return c[:-1]
+    if etype == "ship" and c.endswith("号") and len(c) > 2:
+        return c[:-1]
+    return None
+
+
+def _make_esim_samples():
+    """合成 ESIM 训练数据：(片段, 候选实体, 是否匹配)。
+
+    负样本用「同类型全量其它实体」（而非随机抽几条），避免模型学到
+    「短串 vs 长串 = 匹配」这类长度伪特征。
+    """
+    samples = []  # (sentence1, sentence2, label)
+    for etype, list_attr in _ESIM_TYPES.items():
+        values = getattr(entity_kb, list_attr)
+        for c in values:
+            samples.append((c, c, 1))
+            fuzzy = _fuzzy(c, etype)
+            if fuzzy:
+                samples.append((fuzzy, c, 1))
+        for c in values:
+            fuzzy = _fuzzy(c, etype)
+            for c2 in values:
+                if c2 == c:
+                    continue
+                samples.append((c, c2, 0))
+                if fuzzy:
+                    samples.append((fuzzy, c2, 0))
+    return samples
+
+
 def main():
     random.seed(SEED)
     samples = _make_samples()
@@ -121,6 +168,7 @@ def main():
 
     os.makedirs(INTENT_DIR, exist_ok=True)
     os.makedirs(NER_DIR, exist_ok=True)
+    os.makedirs(ESIM_DIR, exist_ok=True)
 
     for name, subset in [("train", train), ("test", test)]:
         with open(os.path.join(INTENT_DIR, name + ".csv"), "w", encoding="utf8", newline="") as f:
@@ -130,13 +178,27 @@ def main():
                 writer.writerow([s["question"], s["intent"]])
         _write_bio(os.path.join(NER_DIR, name + ".txt"), subset)
 
+    # ESIM 数据：(片段, 候选实体, 是否匹配)
+    esim_samples = _make_esim_samples()
+    random.shuffle(esim_samples)
+    esim_split = int(len(esim_samples) * TRAIN_RATIO)
+    for name, subset in [("train", esim_samples[:esim_split]),
+                         ("test", esim_samples[esim_split:])]:
+        with open(os.path.join(ESIM_DIR, name + ".csv"), "w", encoding="utf8", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["sentence1", "sentence2", "label"])
+            for a, b, label in subset:
+                writer.writerow([a, b, label])
+
     # 统计各类意图数量
     from collections import Counter
     counter = Counter(s["intent"] for s in train)
-    print("共生成样本 %d 条（train=%d / test=%d）" % (len(samples), len(train), len(test)))
+    print("共生成意图/NER 样本 %d 条（train=%d / test=%d）" % (len(samples), len(train), len(test)))
     for intent in sorted(counter):
         print("  %-18s %d" % (intent, counter[intent]))
-    print("已写入 data/intent/* 与 data/ner/*")
+    print("ESIM 样本 %d 条（train=%d / test=%d）"
+          % (len(esim_samples), len(esim_samples[:esim_split]), len(esim_samples[esim_split:])))
+    print("已写入 data/intent/*、data/ner/* 与 data/esim/*")
 
 
 if __name__ == "__main__":
