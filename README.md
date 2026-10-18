@@ -31,25 +31,25 @@ QA/
 ├─ Named_Entity_Recognition.py 词典版问答（兜底，含 6 种 Cypher 模板）
 ├─ build_kg_utils.py           知识图谱构建脚本
 ├─ prepare_data.py             训练数据合成脚本
-├─ evaluate.py                 模块级测试脚本（指标计算，含日志备份）
-├─ log_utils.py                训练/测试日志备份工具（stdout → logs/*.log）
+├─ evaluate.py                 模块级测试脚本（指标计算）
+├─ log_utils.py                训练/测试日志备份工具
+├─ demo_questions.txt          演示问题样例
 ├─ 模块测试与指标说明.md         各模块指标/测试方法说明
+├─ requirements.txt            依赖清单
 ├─ models/                     深度学习组件（PyTorch）
 │   ├─ crf.py                  线性链 CRF
 │   ├─ intent_textcnn.py       字符级 TextCNN 意图分类
-│   ├─ bert_intent.py          BERT+TextCNN 意图分类（可选，需 transformers）
+│   ├─ bert_intent.py          BERT+TextCNN 意图分类
 │   ├─ ner_bilstm_crf.py       BiLSTM-CRF 命名实体识别
-│   ├─ esim.py                 ESIM 实体规范化（PyTorch 版）
+│   ├─ esim.py                 ESIM 实体规范化
 │   ├─ entity_normalizer.py    实体规范化（字符 n-gram 兜底）
 │   ├─ train_intent.py         意图分类训练脚本
-│   ├─ train_bert_intent.py    BERT+TextCNN 训练脚本（可选）
+│   ├─ train_bert_intent.py    BERT+TextCNN 训练脚本
 │   ├─ train_ner.py            NER 训练脚本
 │   └─ train_esim.py           ESIM 训练脚本
-├─ checkpoints/                训练好的权重（intent.pt / ner.pt / esim.pt，均 <7MB）
-├─ logs/                       训练/测试日志备份（时间戳 .log，UTF-8）
+├─ checkpoints/                训练好的权重（intent.pt / ner.pt / esim.pt / bert_intent.pt）
 ├─ graph_data/                 图谱源数据（maritime_history.json 等）
-├─ templates/                  前端页面
-└─ legacy/                     旧版医疗域/新闻语料组件（不随仓库发布，见 §7）
+└─ templates/                  前端页面
 ```
 
 ## 3. 知识图谱 Schema
@@ -81,7 +81,7 @@ QA/
 pip install -r requirements.txt
 ```
 
-> 深度学习模型基于 **PyTorch（CPU 即可）**，无需 TensorFlow/keras。
+> 深度学习模型基于 **PyTorch（CPU 即可）**。
 
 ### 5.2 Neo4j 与连接配置
 
@@ -128,9 +128,9 @@ python evaluate.py                  # 模块级测试（计算全部指标）
 
 > 训练与测试的 stdout 会**自动备份**到 `logs/<名称>_时间戳.log`（见 [`log_utils.py`](log_utils.py)）。
 
-在合成数据上：意图分类准确率 = 100%，NER 实体 F1 ≈ 0.99，ESIM 匹配准确率 ≈ 0.99（CPU 数分钟内完成）。仓库已附带训练好的 `checkpoints/*.pt`，可直接运行，无需重新训练。
+在合成数据上：意图分类准确率 = 100%，NER 实体 F1 = 0.9953，ESIM 匹配准确率 = 100%（CPU 数分钟内完成）。仓库已附带训练好的 `checkpoints/*.pt`，可直接运行，无需重新训练。
 
-**BERT+TextCNN（增强意图语义泛化）**：需要 `transformers`（已列入 requirements）+ 中文 BERT 权重（`bert-base-chinese`，约 400MB，**不随仓库发布**）。下载方式：
+**BERT+TextCNN（增强意图语义泛化）**：需要 `transformers`（已列入 requirements）+ 中文 BERT 权重 `bert-base-chinese`（约 400MB，**不随仓库发布**）。下载方式：
 
 ```bash
 # 从 HuggingFace 镜像下载权重到本地目录（Windows PowerShell 可用）
@@ -146,6 +146,5 @@ python models/train_bert_intent.py     # 产出 checkpoints/bert_intent.pt
 ## 7. 说明与限制
 
 - **合成数据**：模型在模板化合成数据上训练，主要学会「模板问法」，对超纲措辞的泛化有限——因此**词典版保留为兜底**。
-- **意图识别**：默认用**从零训练的字符级 TextCNN**；已实现并训练 **BERT+TextCNN**（`models/bert_intent.py`，PyTorch + transformers，测试准确率 100%），作为增强，流水线**优先 BERT、缺失时回退 TextCNN**（BERT 权重需自备，见 §6）。
-- **实体规范化**：默认用**字符 n-gram 重叠度**；已实现 **ESIM 语义匹配**（`models/esim.py`，PyTorch 版，替代原医疗域 keras/TF1 ESIM），测试准确率 ≈ 0.99，流水线优先 ESIM、缺失时回退 n-gram。
-- **旧版组件**：`legacy/` 目录保存早期从医疗 NLP 教程迁移的原型（医疗域 BERT 意图识别、医疗域 BiLSTM-CRF、医疗域 ESIM、新闻语料），与航运域无关，且包含 12MB 的 `.h5` 旧权重，**已通过 `.gitignore` 排除在版本库之外**。
+- **意图识别**：默认用**从零训练的字符级 TextCNN**；已实现并训练 **BERT+TextCNN**（PyTorch + transformers，见 `models/bert_intent.py`），测试准确率 100%，作为增强，流水线**优先 BERT、缺失时回退 TextCNN**（BERT 权重需自备，见 §6）。
+- **实体规范化**：默认用**字符 n-gram 重叠度**；已实现 **ESIM 语义匹配**（PyTorch 版，见 `models/esim.py`），测试准确率 100%，流水线优先 ESIM、缺失时回退 n-gram。
