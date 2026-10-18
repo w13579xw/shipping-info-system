@@ -1,0 +1,44 @@
+中美贸易航线的主要港口有哪些？
+
+MATCH (e:历史事件)-[:involved_port]->(p:港口)
+        WHERE toLower(e.name) CONTAINS toLower('中美贸易航线')
+        RETURN p.name AS 港口
+
+
+谁是亚太地区航运整合的负责人？
+
+ MATCH (e:历史事件)-[:involved_person]->(p:人物)
+        WHERE toLower(e.name) CONTAINS toLower('亚太地区航运整合')
+        RETURN p.name AS 负责人
+
+
+长赐号的任务是什么？
+
+MATCH (s:船只)-[:carried_out_mission]->(m:任务)
+        WHERE toLower(s.name) CONTAINS toLower('长赐号')
+        RETURN m.name AS 任务
+
+
+中国的历史事件有哪些？
+
+MATCH (e:历史事件)-[:happened_in]->(c:国家)
+        WHERE toLower(c.name) = toLower('中国')
+        RETURN e.name AS 事件
+
+
+中国的港口有哪些？
+
+MATCH (e:港口)-[:located_in]->(c:国家)
+        WHERE toLower(c.name) = toLower('中国')
+        RETURN e.name AS 港口
+
+
+东京港是哪个国家的？
+
+MATCH (e:港口)-[:located_in]->(c:国家)
+        WHERE toLower(e.name) = toLower('东京港')
+        RETURN c.name AS 国家
+
+
+
+

@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# IDE
+.idea/
+.vscode/
+
+# 训练数据（由 prepare_data.py 重新生成）
+data/
+
+# 旧版医疗域/新闻语料组件（早期原型，非航运域，不随公开仓库发布）
+legacy/
+
+# 数据库与模型权重（旧版医疗 .h5 等大文件，不提交）
+*.db
+*.sqlite3
+*.h5
+*.pkl

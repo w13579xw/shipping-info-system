@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>航运信息查询系统</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center; /* 居中容器 */
+            align-items: center;     /* 居中容器 */
+            height: 100vh;           /* 使页面高度为 100% */
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            width: 50%;
+            max-width: 600px;        /* 设置最大宽度，避免过大 */
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            box-sizing: border-box; /* 使元素的总宽度包含 padding 和 border */
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .answer {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+            word-wrap: break-word;
+        }
+        .history {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .history-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>航运查询系统</h1>
+
+        <!-- 历史记录显示区域 -->
+        <div class="history" id="history">
+            <!-- 历史问题和答案会显示在这里 -->
+        </div>
+
+        <input type="text" id="question" placeholder="请输入您的问题...">
+        <button onclick="askQuestion()">提交问题</button>
+
+        <div class="answer" id="answer"></div>
+    </div>
+
+    <script>
+        let history = [];  // 用于存储历史问题和答案
+
+        function askQuestion() {
+            var question = document.getElementById("question").value;
+            if (question.trim() === "") {
+                alert("请先输入问题！");
+                return;
+            }
+
+            // 发送问题到后端并获取答案
+            fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'question=' + encodeURIComponent(question)
+            })
+            .then(response => response.json())
+            .then(data => {
+                var answerDiv = document.getElementById("answer");
+                // 格式化返回的答案
+                var answerText = data.answer.length > 0 ? data.answer.join(", ") : "没有找到相关答案";
+
+                // 显示当前问题的答案
+                answerDiv.innerHTML = "<strong>答案：</strong>" + answerText;
+
+                // 更新历史记录，确保当前问题不加入历史记录
+                addToHistory(question, answerText);
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        // 将问题和答案添加到历史记录的最下方
+        function addToHistory(question, answer) {
+            var historyDiv = document.getElementById("history");
+
+            // 创建新的历史项
+            var historyItem = document.createElement("div");
+            historyItem.classList.add("history-item");
+            historyItem.innerHTML = `<strong>问题：</strong>${question}<br><strong>答案：</strong>${answer}`;
+
+            // 将新的历史项添加到历史记录的最下方
+            historyDiv.insertAdjacentElement("beforeend", historyItem);
+
+            // 自动滚动到最下方
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+        }
+    </script>
+</body>
+</html>

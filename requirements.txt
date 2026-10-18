@@ -1,0 +1,6 @@
+flask>=2.0
+py2neo==2021.2.4
+torch>=2.0
+numpy
+pandas
+tqdm
