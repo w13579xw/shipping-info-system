@@ -68,7 +68,9 @@ class BertIntentClassifier(object):
 
     def load(self, path, model_name="bert-base-chinese"):
         ckpt = torch.load(path, map_location="cpu", weights_only=False)
-        self.model_name = ckpt.get("model_name", model_name)
+        # 优先用环境变量 BERT_MODEL_DIR 指向的本地权重目录；否则用 checkpoint
+        # 里保存的模型名（只存 basename，避免泄露本机绝对路径）。
+        self.model_name = os.getenv("BERT_MODEL_DIR", ckpt.get("model_name", model_name))
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.model = BertModel.from_pretrained(self.model_name)
         self.id2label = ckpt.get("id2label", LABELS)

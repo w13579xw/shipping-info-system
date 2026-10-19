@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""PyTorch 版 ESIM 实体规范化（替代原医疗域 keras/TF1 的 ESIM）。
+"""PyTorch 版 ESIM 实体规范化。
 
-架构（与原 esim.py 一致，仅框架换为 PyTorch）：
+ESIM（Enhanced Sequential Inference Model，增强型序列推理模型）架构：
   字符嵌入 → BiLSTM 编码 → 软注意力局部推理 → 组合 BiLSTM → 均值/最大池化
   → MLP → 2 分类（判断「片段 vs 候选实体」是否匹配）。
 
@@ -18,6 +18,8 @@ OOV = 1
 
 
 class ESIM(nn.Module):
+    """ESIM：编码 → 软注意力对齐 → 组合 → 池化 → MLP 二分类。"""
+
     def __init__(self, vocab_size, embed_dim, hidden_dim, num_classes=2, dropout=0.2):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=PAD)

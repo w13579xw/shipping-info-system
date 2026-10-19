@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """线性链条件随机场（CRF）的 PyTorch 实现。
 
-约定（与 bilstm_crf 的 BIO 标注一致）：
+约定（BIO 标注）：
   - 真实标签编号为 1..num_tags，0 为 padding（掩码后不参与计算）；
   - CRF 内部标签集在真实标签之外额外追加 START（编号 0）与 STOP（编号 num_tags+1）。
 """

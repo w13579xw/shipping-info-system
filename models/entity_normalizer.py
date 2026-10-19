@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-"""轻量实体规范化（替代原医疗域 ESIM 语义匹配）。
+"""字符 n-gram 实体规范化（兜底方案）。
 
-航运域实体为闭集（几十个），无需 ESIM 级别的语义模型。这里用字符 n-gram
-重叠度 + 子串匹配，把 NER 识别出的实体片段映射到规范实体表。
+航运域实体为闭集（几十个），用「精确匹配 → 子串匹配 → 字符 n-gram 重叠度」
+把 NER 识别出的实体片段映射到规范实体表；与 ESIM 版（esim.py）共用
+normalize(word, etype) -> 规范实体名 接口。
 """
 import os
 import sys
@@ -23,12 +24,14 @@ ENTITY_LISTS = {
 
 
 def _ngrams(s, n=2):
+    """返回字符串 s 的字符 n-gram 列表（长度不足 n 时返回原串）。"""
     if len(s) < n:
         return [s]
     return [s[i:i + n] for i in range(len(s) - n + 1)]
 
 
 def _overlap(a, b, n=2):
+    """两个字符串字符 n-gram 集合的 Jaccard 相似度（取值 0~1）。"""
     ga, gb = set(_ngrams(a, n)), set(_ngrams(b, n))
     if not ga or not gb:
         return 0.0

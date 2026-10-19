@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-"""字符级 TextCNN 意图分类器（从零训练，替代原医疗域 BERT+TextCNN）。
+"""字符级 TextCNN 意图分类器（从零训练）。
 
-原组件依赖 bert4keras + TF1，且 BERT 权重缺失，无法在本机复现；本实现用
-PyTorch 字符级 TextCNN 从合成数据训练，模型体积小、CPU 即可推理。
+对问句做字符级一维卷积，抽取局部 n-gram 特征完成 7 类意图分类；
+模型体积小、CPU 即可推理。与 BERT+TextCNN 版（bert_intent.py）共用
+predict(text) -> (intent, confidence) 接口。
 """
 import os
 
@@ -15,6 +16,8 @@ OOV = 1
 
 
 class TextCNN(nn.Module):
+    """字符级 TextCNN：嵌入 → 多卷积核一维卷积 → 全局最大池化 → 全连接。"""
+
     def __init__(self, vocab_size, embed_dim, num_classes,
                  kernels=(3, 4, 5), filters=128, dropout=0.3):
         super().__init__()

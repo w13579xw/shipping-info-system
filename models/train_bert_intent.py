@@ -137,7 +137,7 @@ def main():
     ckpt = {
         "cnn_state": cnn.state_dict(),
         "id2label": LABELS,
-        "model_name": MODEL_NAME,
+        "model_name": os.path.basename(MODEL_NAME.rstrip("/\\")),
         "max_len": MAX_LEN,
         "filters": FILTERS,
     }

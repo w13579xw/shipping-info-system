@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-"""PyTorch BiLSTM-CRF 命名实体识别（替代原 keras 医疗域 BiLSTM-CRF）。
+"""PyTorch BiLSTM-CRF 命名实体识别。
 
-BIO 标注，7 类实体：event / country / mission / person / port / ship / year。
+双向 LSTM 编码字符序列，线性链 CRF 层建模标签间转移约束，输出 BIO 标注；
+7 类实体：event / country / mission / person / port / ship / year。
 """
 import os
 
@@ -15,6 +16,8 @@ OOV = 1
 
 
 class BiLSTMCRF(nn.Module):
+    """双向 LSTM 字符编码 + 线性链 CRF 解码，输出 BIO 标签序列。"""
+
     def __init__(self, vocab_size, embed_dim, hidden_dim, num_tags, dropout=0.3):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=PAD)
@@ -85,6 +88,7 @@ class NERModel(object):
         return self._tags_to_entities(chars, path)
 
     def _tags_to_entities(self, chars, tags):
+        """把 BIO 标签序列还原为实体列表 [(文本, 类型), ...]（B_ 开头、I_ 续接）。"""
         entities = []
         cur = []
         cur_type = None
